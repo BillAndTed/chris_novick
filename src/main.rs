@@ -22,12 +22,12 @@ fn main() {
     // Load JSON data, for now synchronously
     let games = MlbApi::get_items();
     println!("Found {} games", games.len());
-    
     let opengl = OpenGL::V4_5;
     // Create an Glutin window.
     let mut window: Window = WindowSettings::new("DSS Exercise #1", [WIDTH, HEIGHT])
         .graphics_api(opengl)
         .exit_on_esc(true)
+        .fullscreen(true)
         .build()
         .unwrap();
 
@@ -45,7 +45,7 @@ fn main() {
         GlGraphics::new(opengl),
         texture,
         (img.width() as f64, img.height() as f64),
-        games
+        games,
     );
 
     // Event loop for created window

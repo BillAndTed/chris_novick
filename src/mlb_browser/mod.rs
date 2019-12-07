@@ -12,12 +12,14 @@ use piston::window::WindowSettings;
 use serde_derive::{Deserialize, Serialize};
 use serde_json::Result;
 
-#[derive(Clone)]
+// #[derive(Clone)]
 struct MenuItem {
     is_selected: bool,
     game: Game,
     width: f64,
     height: f64,
+    img: image::RgbaImage,
+    img_tex: Texture,
 }
 
 impl MenuItem {
@@ -30,12 +32,6 @@ impl MenuItem {
             &self.game.teams.home.team.name, &self.game.teams.away.team.name
         );
         let (recap_text, recap_url) = self.game.get_recap();
-        let img_bytes = include_bytes!("../../cut.jpg");
-        let img = match image::load_from_memory_with_format(img_bytes, ImageFormat::JPEG).unwrap() {
-            DynamicImage::ImageRgba8(data) => data,
-            x => x.to_rgba(),
-        };
-        let img_tex = Texture::from_image(&img, &TextureSettings::new());
         let mut glyph_cache = GlyphCache::from_bytes(font, (), TextureSettings::new()).unwrap();
 
         const RED: [f32; 4] = [1.0, 0.0, 0.0, 0.25];
@@ -55,22 +51,25 @@ impl MenuItem {
             let title_trans = transform.trans(-center_x * scale, center_y * scale + 15.0);
             let img_trans = transform
                 .scale(
-                    scaled_width / img.width() as f64,
-                    scaled_height / img.height() as f64,
+                    scaled_width / self.img.width() as f64,
+                    scaled_height / self.img.height() as f64,
                 )
-                .trans(-0.5 * img.width() as f64, -0.5 * img.height() as f64);
+                .trans(
+                    -0.5 * self.img.width() as f64,
+                    -0.5 * self.img.height() as f64,
+                );
             text(WHITE, 15, &g_text, &mut glyph_cache, vs_trans, gl).unwrap();
             text(WHITE, 15, &recap_text, &mut glyph_cache, title_trans, gl).unwrap();
             rectangle(BLUE, square, box_transform, gl);
-            graphics::image(&img_tex, img_trans, gl);
+            graphics::image(&self.img_tex, img_trans, gl);
         } else {
             let transform = transform.trans(-center_x, -center_y);
-            rectangle(RED, square, transform, gl);
+            // rectangle(RED, square, transform, gl);
             let img_trans = transform.scale(
-                self.width / img.width() as f64,
-                self.height / img.height() as f64,
+                self.width / self.img.width() as f64,
+                self.height / self.img.height() as f64,
             );
-            graphics::image(&img_tex, img_trans, gl);
+            graphics::image(&self.img_tex, img_trans, gl);
         }
     }
 
@@ -102,14 +101,33 @@ impl App {
             rate: 1.0,
             bg_texture: bg_texture,
             bg_size,
-            // items: vec![MenuItem { is_selected: false }; 4],
             items: games
                 .iter()
                 .map(|g| MenuItem {
                     is_selected: false,
                     game: g.to_owned(),
-                    width: 70.0,
-                    height: 70.0 * 0.75,
+                    width: 200.0,
+                    height: 200.0 * 9.0 / 16.0,
+                    img: {
+                        let img_bytes = include_bytes!("../../cut.jpg");
+                        match image::load_from_memory_with_format(img_bytes, ImageFormat::JPEG)
+                            .unwrap()
+                        {
+                            DynamicImage::ImageRgba8(data) => data,
+                            x => x.to_rgba(),
+                        }
+                    },
+                    img_tex: {
+                        let img_bytes = include_bytes!("../../cut.jpg");
+                        let img =
+                            match image::load_from_memory_with_format(img_bytes, ImageFormat::JPEG)
+                                .unwrap()
+                            {
+                                DynamicImage::ImageRgba8(data) => data,
+                                x => x.to_rgba(),
+                            };
+                        Texture::from_image(&img, &TextureSettings::new())
+                    },
                 })
                 .collect(),
             selected_idx: None,
@@ -159,7 +177,7 @@ impl App {
         let bg_texture = &self.bg_texture;
         let (center_x, center_y) = (args.window_size[0] / 2.0, args.window_size[1] / 2.0);
         let (bg_w, bg_h) = self.bg_size;
-        let items = self.items.clone();
+        let items = &self.items; //.clone();
         let selected = {
             if let Some(selected) = self.selected_idx {
                 selected
@@ -188,8 +206,8 @@ impl App {
             items.iter().enumerate().for_each(|(idx, item)| {
                 let transform = c
                     .transform
-                    .trans(center_x + (idx * 100) as f64, center_y)
-                    .trans(selected as f64 * -100.0, 0.0);
+                    .trans(center_x + (idx as f64 * item.width * 1.5), center_y)
+                    .trans(selected as f64 * -item.width * 1.5, 0.0);
                 item.render(transform, c, gl);
             });
         });
