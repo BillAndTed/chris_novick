@@ -23,7 +23,10 @@ impl MenuItem {
         use graphics::*;
         let texture_settings = TextureSettings::new();
         let font = include_bytes!("../../FiraSans-Regular.ttf");
-        let g_text = &self.game.teams.home.team.name;
+        let g_text = format!(
+            "{} vs {}",
+            &self.game.teams.home.team.name, &self.game.teams.away.team.name
+        );
         let mut glyph_cache = GlyphCache::from_bytes(font, (), TextureSettings::new()).unwrap();
 
         const RED: [f32; 4] = [1.0, 0.0, 0.0, 0.25];
@@ -32,10 +35,10 @@ impl MenuItem {
         // Center this block respectively
         let square = rectangle::square(0.0, 0.0, 50.0);
         if self.is_selected {
-            let transform = transform.scale(1.5, 1.5).trans(-25.0, -25.0);
-            let text_transform = transform.trans(-25.0, -25.0);
+            let box_transform = transform.scale(1.5, 1.5).trans(-25.0, -25.0);
+            let text_transform = transform.trans((-25.0 * 1.5), (-25.0 * 1.5));
             text(GREEN, 15, &g_text, &mut glyph_cache, text_transform, gl).unwrap();
-            rectangle(BLUE, square, transform, gl);
+            rectangle(BLUE, square, box_transform, gl);
         } else {
             // text(GREEN, 8, &g_text, &mut glyph_cache, transform, gl).unwrap();
             let transform = transform.trans(-25.0, -25.0);
@@ -126,6 +129,13 @@ impl App {
         let (center_x, center_y) = (args.window_size[0] / 2.0, args.window_size[1] / 2.0);
         let (bg_w, bg_h) = self.bg_size;
         let items = self.items.clone();
+        let selected = {
+            if let Some(selected) = self.selected_idx {
+                selected
+            } else {
+                0
+            }
+        };
 
         self.gl.draw(args.viewport(), |c, gl| {
             // Stretch our background image to the window and draw it
@@ -146,7 +156,10 @@ impl App {
 
             // For each item in our items list, render it
             items.iter().enumerate().for_each(|(idx, item)| {
-                let transform = c.transform.trans((idx * 100) as f64, center_y);
+                let transform = c
+                    .transform
+                    .trans(center_x + (idx * 100) as f64, center_y)
+                    .trans(selected as f64 * -100.0, 0.0);
                 item.render(transform, c, gl);
             });
         });

@@ -76,8 +76,8 @@ impl MlbApi {
         // .unwrap();
         // println!("{:#?}", resp.keys());
 
-        // let json = read_to_string("./schedule.json").unwrap();
-        let json: String = reqwest::blocking::get("http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1").unwrap().text().unwrap();
+        let json = read_to_string("./schedule.json").unwrap();
+        // let json: String = reqwest::blocking::get("http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1").unwrap().text().unwrap();
 
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
         // let game :Game = serde_json::from_value(parsed["dates"][0]["games"][0].to_owned()).unwrap();
