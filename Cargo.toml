@@ -24,3 +24,4 @@ vecmath = "1.0.0"
 camera_controllers = "0.31.0"
 rand = "0.6.0"
 shader_version = "0.6.0"
+reqwest = { version = "0.10.0-alpha.2", features = ["blocking", "json"] }
