@@ -1,5 +1,6 @@
 mod mlb_browser;
 use glutin_window::GlutinWindow as Window;
+use mlb_browser::mlb_api::MlbApi;
 use opengl_graphics::{GlGraphics, OpenGL, Texture, TextureSettings};
 use piston::event_loop::{EventSettings, Events};
 use piston::input::{Button, Key, PressEvent, RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
@@ -11,13 +12,17 @@ use mlb_browser::*;
 use piston::window::WindowSettings;
 use std::collections::HashMap;
 use std::path::Path;
-use reqwest::*;
 
 const WIDTH: f64 = 800.0;
 const HEIGHT: f64 = 600.0;
 
 fn main() {
     // Load OpenGL version
+
+    // Load JSON data, for now synchronously
+    let games = MlbApi::get_items();
+    println!("Found {} games", games.len());
+    
     let opengl = OpenGL::V4_5;
     // Create an Glutin window.
     let mut window: Window = WindowSettings::new("DSS Exercise #1", [WIDTH, HEIGHT])
@@ -35,18 +40,12 @@ fn main() {
     // Create texture from the background image
     let texture = Texture::from_image(&img, &TextureSettings::new());
 
-    // Load JSON data, for now synchronously
-    let resp: HashMap<String, String> = reqwest::blocking::get("https://httpbin.org/ip")
-        .unwrap()
-        .json()
-        .unwrap();
-    println!("{:?}", resp);
-
     // Create our mlb_browser
     let mut app = App::new(
         GlGraphics::new(opengl),
         texture,
         (img.width() as f64, img.height() as f64),
+        games
     );
 
     // Event loop for created window

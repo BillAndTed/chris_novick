@@ -160,6 +160,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "chrono"
+version = "0.4.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "31850b4a4d6bae316f7a09e691c944c28299298837edc0a03f755618c23cbc01"
+dependencies = [
+ "num-integer",
+ "num-traits",
+ "time",
+]
+
+[[package]]
 name = "cloudabi"
 version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1388,6 +1399,7 @@ name = "piston2d_playground"
 version = "0.1.0"
 dependencies = [
  "camera_controllers",
+ "chrono",
  "find_folder",
  "gfx",
  "gfx_device_gl",
@@ -1403,6 +1415,9 @@ dependencies = [
  "pistoncore-glutin_window",
  "rand 0.6.5",
  "reqwest",
+ "serde",
+ "serde_derive",
+ "serde_json",
  "shader_version",
  "vecmath",
 ]

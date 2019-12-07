@@ -1,33 +1,44 @@
+pub mod mlb_api;
 // use glutin_window::GlutinWindow as Window;
-use opengl_graphics::{GlGraphics, OpenGL, Texture, TextureSettings, GlyphCache};
+use opengl_graphics::{GlGraphics, GlyphCache, OpenGL, Texture, TextureSettings};
 use piston::event_loop::{EventSettings, Events};
 use piston::input::{Button, Key, PressEvent, RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
 // use piston::input::*;
-use graphics::{character, rectangle::square};
+use graphics::{character, math::Matrix2d, rectangle::square};
 use graphics::{clear, Image};
 use image::{DynamicImage, ImageFormat};
+use mlb_api::Game;
 use piston::window::WindowSettings;
-use std::path::Path;
+use serde_derive::{Deserialize, Serialize};
+use serde_json::Result;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct MenuItem {
     is_selected: bool,
+    game: Game,
 }
 
 impl MenuItem {
-    pub fn render(&self, transform: [[f64; 3]; 2], gl: &mut GlGraphics) {
+    pub fn render(&self, transform: Matrix2d, c: graphics::context::Context, gl: &mut GlGraphics) {
         use graphics::*;
         let texture_settings = TextureSettings::new();
         let font = include_bytes!("../../FiraSans-Regular.ttf");
+        let g_text = &self.game.teams.home.team.name;
         let mut glyph_cache = GlyphCache::from_bytes(font, (), TextureSettings::new()).unwrap();
 
         const RED: [f32; 4] = [1.0, 0.0, 0.0, 0.25];
         const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
+        const BLUE: [f32; 4] = [0.0, 0.0, 1.0, 1.0];
+        // Center this block respectively
         let square = rectangle::square(0.0, 0.0, 50.0);
         if self.is_selected {
-            rectangle(GREEN, square, transform, gl);
+            let transform = transform.scale(1.5, 1.5).trans(-25.0, -25.0);
+            let text_transform = transform.trans(-25.0, -25.0);
+            text(GREEN, 15, &g_text, &mut glyph_cache, text_transform, gl).unwrap();
+            rectangle(BLUE, square, transform, gl);
         } else {
-            text(GREEN, 15, "Derp!", &mut glyph_cache, transform, gl).unwrap();
+            // text(GREEN, 8, &g_text, &mut glyph_cache, transform, gl).unwrap();
+            let transform = transform.trans(-25.0, -25.0);
             rectangle(RED, square, transform, gl);
         }
     }
@@ -52,6 +63,7 @@ impl App {
         gl: GlGraphics, // OpenGL drawing backend.
         bg_texture: Texture,
         bg_size: (f64, f64),
+        games: Vec<Game>,
     ) -> App {
         App {
             gl: gl,
@@ -59,7 +71,14 @@ impl App {
             rate: 1.0,
             bg_texture: bg_texture,
             bg_size,
-            items: vec![MenuItem { is_selected: false }; 4],
+            // items: vec![MenuItem { is_selected: false }; 4],
+            items: games
+                .iter()
+                .map(|g| MenuItem {
+                    is_selected: false,
+                    game: g.to_owned(),
+                })
+                .collect(),
             selected_idx: None,
         }
     }
@@ -127,8 +146,8 @@ impl App {
 
             // For each item in our items list, render it
             items.iter().enumerate().for_each(|(idx, item)| {
-                let transform = c.transform.trans((idx * 60) as f64, center_y);
-                item.render(transform, gl);
+                let transform = c.transform.trans((idx * 100) as f64, center_y);
+                item.render(transform, c, gl);
             });
         });
     }
