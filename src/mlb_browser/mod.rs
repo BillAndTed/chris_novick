@@ -4,7 +4,7 @@ use opengl_graphics::{GlGraphics, GlyphCache, OpenGL, Texture, TextureSettings};
 use piston::event_loop::{EventSettings, Events};
 use piston::input::{Button, Key, PressEvent, RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
 // use piston::input::*;
-use graphics::{character, math::Matrix2d, rectangle::square};
+use graphics::{character, math::Matrix2d, rectangle::*};
 use graphics::{clear, Image};
 use image::{DynamicImage, ImageFormat};
 use mlb_api::Game;
@@ -16,33 +16,61 @@ use serde_json::Result;
 struct MenuItem {
     is_selected: bool,
     game: Game,
+    width: f64,
+    height: f64,
 }
 
 impl MenuItem {
     pub fn render(&self, transform: Matrix2d, c: graphics::context::Context, gl: &mut GlGraphics) {
-        use graphics::*;
+        use graphics::{rectangle, text, Rectangle, Transformed};
         let texture_settings = TextureSettings::new();
         let font = include_bytes!("../../FiraSans-Regular.ttf");
         let g_text = format!(
             "{} vs {}",
             &self.game.teams.home.team.name, &self.game.teams.away.team.name
         );
+        let (recap_text, recap_url) = self.game.get_recap();
+        let img_bytes = include_bytes!("../../cut.jpg");
+        let img = match image::load_from_memory_with_format(img_bytes, ImageFormat::JPEG).unwrap() {
+            DynamicImage::ImageRgba8(data) => data,
+            x => x.to_rgba(),
+        };
+        let img_tex = Texture::from_image(&img, &TextureSettings::new());
         let mut glyph_cache = GlyphCache::from_bytes(font, (), TextureSettings::new()).unwrap();
 
         const RED: [f32; 4] = [1.0, 0.0, 0.0, 0.25];
         const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
         const BLUE: [f32; 4] = [0.0, 0.0, 1.0, 1.0];
+        const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+        let center_x = self.width / 2.0;
+        let center_y = self.height / 2.0;
         // Center this block respectively
-        let square = rectangle::square(0.0, 0.0, 50.0);
+        let square = rectangle::rectangle_by_corners(0.0, 0.0, self.width, self.height);
         if self.is_selected {
-            let box_transform = transform.scale(1.5, 1.5).trans(-25.0, -25.0);
-            let text_transform = transform.trans((-25.0 * 1.5), (-25.0 * 1.5));
-            text(GREEN, 15, &g_text, &mut glyph_cache, text_transform, gl).unwrap();
+            let scale = 1.5;
+            let scaled_width = scale * self.width;
+            let scaled_height = scale * self.height;
+            let box_transform = transform.scale(scale, scale).trans(-center_x, -center_y);
+            let vs_trans = transform.trans(-center_x * scale, -center_y * scale);
+            let title_trans = transform.trans(-center_x * scale, center_y * scale + 15.0);
+            let img_trans = transform
+                .scale(
+                    scaled_width / img.width() as f64,
+                    scaled_height / img.height() as f64,
+                )
+                .trans(-0.5 * img.width() as f64, -0.5 * img.height() as f64);
+            text(WHITE, 15, &g_text, &mut glyph_cache, vs_trans, gl).unwrap();
+            text(WHITE, 15, &recap_text, &mut glyph_cache, title_trans, gl).unwrap();
             rectangle(BLUE, square, box_transform, gl);
+            graphics::image(&img_tex, img_trans, gl);
         } else {
-            // text(GREEN, 8, &g_text, &mut glyph_cache, transform, gl).unwrap();
-            let transform = transform.trans(-25.0, -25.0);
+            let transform = transform.trans(-center_x, -center_y);
             rectangle(RED, square, transform, gl);
+            let img_trans = transform.scale(
+                self.width / img.width() as f64,
+                self.height / img.height() as f64,
+            );
+            graphics::image(&img_tex, img_trans, gl);
         }
     }
 
@@ -80,6 +108,8 @@ impl App {
                 .map(|g| MenuItem {
                     is_selected: false,
                     game: g.to_owned(),
+                    width: 70.0,
+                    height: 70.0 * 0.75,
                 })
                 .collect(),
             selected_idx: None,
@@ -88,12 +118,9 @@ impl App {
 
     fn update_selected(&mut self) {
         let selected = self.selected_idx;
-        self.items
-            .iter_mut()
-            .enumerate()
-            .for_each(|(idx, mut item)| {
-                item.select(selected == Some(idx));
-            });
+        self.items.iter_mut().enumerate().for_each(|(idx, item)| {
+            item.select(selected == Some(idx));
+        });
     }
 
     pub fn select_next(&mut self) {
@@ -107,7 +134,11 @@ impl App {
 
     pub fn select_prev(&mut self) {
         if let Some(selected) = self.selected_idx {
-            self.selected_idx = Some((selected - 1) % self.items.len());
+            self.selected_idx = if selected == 0 {
+                Some(self.items.len() - 1)
+            } else {
+                Some(selected - 1 % self.items.len())
+            };
         } else {
             self.selected_idx = Some(0);
         }
@@ -123,7 +154,7 @@ impl App {
 
         const RED: [f32; 4] = [1.0, 0.0, 0.0, 0.25];
 
-        let square = rectangle::square(0.0, 0.0, 50.0);
+        let square = rectangle::centered([0.0, 0.0, 25.0, 25.0]);
         let rotation = self.rotation;
         let bg_texture = &self.bg_texture;
         let (center_x, center_y) = (args.window_size[0] / 2.0, args.window_size[1] / 2.0);
@@ -142,14 +173,13 @@ impl App {
             let bg_trans = c
                 .transform
                 .scale(args.window_size[0] / bg_w, args.window_size[1] / bg_h);
-            image(bg_texture, bg_trans, gl);
+            graphics::image(bg_texture, bg_trans, gl);
 
             let transform = c
                 .transform
                 // .trans(center_x, center_y)
                 .trans(25.0, 25.0)
-                .rot_rad(rotation)
-                .trans(-25.0, -25.0);
+                .rot_rad(rotation);
 
             // Draw a box rotating around the middle of the screen.
             rectangle(RED, square, transform, gl);
