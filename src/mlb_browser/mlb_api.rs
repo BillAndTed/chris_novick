@@ -233,9 +233,7 @@ pub struct MlbApi {}
 impl MlbApi {
     pub fn get_items() -> Option<Vec<Game>> {
         // let json = read_to_string("src/assets/schedule.json").unwrap();
-
-        let date_str = Utc::now().format("%Y-%m-%d");
-        // let req_url = format!("http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date={}&sportId=1", &date_str);
+        // let req_url = &format!("http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date={}&sportId=1", &Utc::now().format("%Y-%m-%d"));
         let req_url = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1";
         println!("{}", req_url);
         let json: String = reqwest::blocking::get(req_url).unwrap().text().unwrap();

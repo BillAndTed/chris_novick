@@ -310,6 +310,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "dds_interview1"
+version = "0.1.0"
+dependencies = [
+ "camera_controllers",
+ "chrono",
+ "find_folder",
+ "gfx",
+ "gfx_device_gl",
+ "image",
+ "piston",
+ "piston-ai_behavior",
+ "piston2d-deform_grid",
+ "piston2d-drag_controller",
+ "piston2d-graphics",
+ "piston2d-opengl_graphics",
+ "piston2d-sprite",
+ "piston_window",
+ "pistoncore-glutin_window",
+ "rand 0.6.5",
+ "reqwest",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "shader_version",
+ "vecmath",
+]
+
+[[package]]
 name = "deflate"
 version = "0.7.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1392,34 +1420,6 @@ dependencies = [
  "piston2d-graphics",
  "pistoncore-input",
  "uuid",
-]
-
-[[package]]
-name = "piston2d_playground"
-version = "0.1.0"
-dependencies = [
- "camera_controllers",
- "chrono",
- "find_folder",
- "gfx",
- "gfx_device_gl",
- "image",
- "piston",
- "piston-ai_behavior",
- "piston2d-deform_grid",
- "piston2d-drag_controller",
- "piston2d-graphics",
- "piston2d-opengl_graphics",
- "piston2d-sprite",
- "piston_window",
- "pistoncore-glutin_window",
- "rand 0.6.5",
- "reqwest",
- "serde",
- "serde_derive",
- "serde_json",
- "shader_version",
- "vecmath",
 ]
 
 [[package]]
