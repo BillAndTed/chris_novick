@@ -1,6 +1,9 @@
 # DSS Exercise #1
 I enjoyed this exercise quite a lot.  It was an opportunity to expose myself to OpenGL development in Rust and reacquaint myself with OpenGL development generally.  While I wasn't able to include all of the features I had planned, I'm (mostly) happy with the result.
 
+## Pre-built Binaries
+Binaries for [Linux](https://github.com/TheRealBluesun/disney_interview1/raw/master/bin/dss_interview1_linux.tar.gz) and [Windows](https://github.com/TheRealBluesun/disney_interview1/raw/master/bin/dss_interview1_windows.zip) can be found in the [bin](https://github.com/TheRealBluesun/disney_interview1/tree/master/bin) directory.
+
 ## Build Instructions
 1. Download and install [Rust](https://www.rust-lang.org/tools/install) _or_ update to the latest
 ```
