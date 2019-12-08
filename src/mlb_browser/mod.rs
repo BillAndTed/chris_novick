@@ -1,6 +1,6 @@
 pub mod mlb_api;
 // use glutin_window::GlutinWindow as Window;
-use opengl_graphics::{GlGraphics, GlyphCache, OpenGL, Texture, TextureSettings};
+use opengl_graphics::{GlGraphics, GlyphCache, ImageSize, OpenGL, Texture, TextureSettings};
 use piston::event_loop::{EventSettings, Events};
 use piston::input::{Button, Key, PressEvent, RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
 // use piston::input::*;
@@ -12,13 +12,14 @@ use piston::window::WindowSettings;
 use serde_derive::{Deserialize, Serialize};
 use serde_json::Result;
 
-// #[derive(Clone)]
 struct MenuItem {
     is_selected: bool,
     game: Game,
     width: f64,
     height: f64,
-    img: image::RgbaImage,
+    // img: image::RgbaImage,
+    // img_height: f64,
+    // img_width: f64,
     img_tex: Texture,
 }
 
@@ -40,6 +41,9 @@ impl MenuItem {
         const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
         let center_x = self.width / 2.0;
         let center_y = self.height / 2.0;
+        let (img_width, img_height) = self.img_tex.get_size();
+        let img_width = img_width as f64;
+        let img_height = img_height as f64;
         // Center this block respectively
         let square = rectangle::rectangle_by_corners(0.0, 0.0, self.width, self.height);
         if self.is_selected {
@@ -50,25 +54,16 @@ impl MenuItem {
             let vs_trans = transform.trans(-center_x * scale, -center_y * scale - 15.0);
             let title_trans = transform.trans(-center_x * scale, center_y * scale + 15.0);
             let img_trans = transform
-                .scale(
-                    scaled_width / self.img.width() as f64,
-                    scaled_height / self.img.height() as f64,
-                )
-                .trans(
-                    -0.5 * self.img.width() as f64,
-                    -0.5 * self.img.height() as f64,
-                );
-            text(WHITE, 20, &g_text, &mut glyph_cache, vs_trans, gl).unwrap();
+                .scale(scaled_width / img_width, scaled_height / img_height)
+                .trans(-0.5 * img_width, -0.5 * img_height);
+            text(WHITE, 22, &g_text, &mut glyph_cache, vs_trans, gl).unwrap();
             text(WHITE, 15, &recap_text, &mut glyph_cache, title_trans, gl).unwrap();
             rectangle(BLUE, square, box_transform, gl);
             graphics::image(&self.img_tex, img_trans, gl);
         } else {
             let transform = transform.trans(-center_x, -center_y);
             // rectangle(RED, square, transform, gl);
-            let img_trans = transform.scale(
-                self.width / self.img.width() as f64,
-                self.height / self.img.height() as f64,
-            );
+            let img_trans = transform.scale(self.width / img_width, self.height / img_height);
             graphics::image(&self.img_tex, img_trans, gl);
         }
     }
@@ -84,7 +79,7 @@ pub struct App {
     rate: f64,
     bg_texture: Texture,
     bg_size: (f64, f64),
-    items: Vec<MenuItem>,
+    items: Option<Vec<MenuItem>>,
     selected_idx: Option<usize>,
 }
 
@@ -93,7 +88,7 @@ impl App {
         gl: GlGraphics, // OpenGL drawing backend.
         bg_texture: Texture,
         bg_size: (f64, f64),
-        games: Vec<Game>,
+        games: Option<Vec<Game>>,
     ) -> App {
         App {
             gl: gl,
@@ -101,68 +96,74 @@ impl App {
             rate: 1.0,
             bg_texture: bg_texture,
             bg_size,
-            items: games
-                .iter()
-                .map(|g| MenuItem {
-                    is_selected: false,
-                    game: g.to_owned(),
-                    width: 200.0,
-                    height: 200.0 * 9.0 / 16.0,
-                    img: {
-                        let (_,url) = g.get_recap();
-                        let img_bytes = Game::get_img(url.clone(), g.gamePk.to_string());
-                        match image::load_from_memory_with_format(&img_bytes, ImageFormat::JPEG)
-                            .unwrap()
-                        {
-                            DynamicImage::ImageRgba8(data) => data,
-                            x => x.to_rgba(),
-                        }
-                    },
-                    img_tex: {
-                        let (_,url) = g.get_recap();
-                        let img_bytes = Game::get_img(url.clone(), g.gamePk.to_string());
-                        let img =
-                            match image::load_from_memory_with_format(&img_bytes, ImageFormat::JPEG)
-                                .unwrap()
-                            {
-                                DynamicImage::ImageRgba8(data) => data,
-                                x => x.to_rgba(),
-                            };
-                        Texture::from_image(&img, &TextureSettings::new())
-                    },
-                })
-                .collect(),
+            items: {
+                match games {
+                    Some(games_list) => Some(
+                        games_list
+                            .iter()
+                            .map(|g| MenuItem {
+                                is_selected: false,
+                                game: g.to_owned(),
+                                width: 200.0,
+                                height: 200.0 * 9.0 / 16.0,
+                                img_tex: {
+                                    let (_, url) = g.get_recap();
+                                    let img_bytes =
+                                        Game::get_img(url.clone(), g.gamePk.to_string());
+                                    let img = match image::load_from_memory_with_format(
+                                        &img_bytes,
+                                        ImageFormat::JPEG,
+                                    )
+                                    .unwrap()
+                                    {
+                                        DynamicImage::ImageRgba8(data) => data,
+                                        x => x.to_rgba(),
+                                    };
+                                    Texture::from_image(&img, &TextureSettings::new())
+                                },
+                            })
+                            .collect(),
+                    ),
+                    _ => None,
+                }
+            },
             selected_idx: None,
         }
     }
 
     fn update_selected(&mut self) {
         let selected = self.selected_idx;
-        self.items.iter_mut().enumerate().for_each(|(idx, item)| {
-            item.select(selected == Some(idx));
-        });
+        if let Some(items_list) = &mut self.items {
+            items_list.iter_mut().enumerate().for_each(|(idx, item)| {
+                item.select(selected == Some(idx));
+            });
+        }
     }
 
     pub fn select_next(&mut self) {
-        if let Some(selected) = self.selected_idx {
-            self.selected_idx = Some((selected + 1) % self.items.len());
-        } else {
-            self.selected_idx = Some(0);
+        if let Some(items_list) = &self.items {
+            if let Some(selected) = self.selected_idx {
+                self.selected_idx = Some((selected + 1) % items_list.len());
+            } else {
+                self.selected_idx = Some(0);
+            }
+            self.update_selected();
         }
-        self.update_selected();
     }
 
     pub fn select_prev(&mut self) {
-        if let Some(selected) = self.selected_idx {
-            self.selected_idx = if selected == 0 {
-                Some(self.items.len() - 1)
+        if let Some(items_list) = &self.items {
+            if let Some(selected) = self.selected_idx {
+                self.selected_idx = if selected == 0 {
+                    Some(items_list.len() - 1)
+                } else {
+                    Some(selected - 1 % items_list.len())
+                };
             } else {
-                Some(selected - 1 % self.items.len())
-            };
-        } else {
-            self.selected_idx = Some(0);
+                self.selected_idx = Some(0);
+            }
+            self.update_selected();
         }
-        self.update_selected();
     }
 
     pub fn set_rate(&mut self, rate: f64) {
@@ -205,13 +206,15 @@ impl App {
             rectangle(RED, square, transform, gl);
 
             // For each item in our items list, render it
-            items.iter().enumerate().for_each(|(idx, item)| {
-                let transform = c
-                    .transform
-                    .trans(center_x + (idx as f64 * item.width * 1.3), center_y * 1.1)
-                    .trans(selected as f64 * -item.width * 1.3, 0.0);
-                item.render(transform, c, gl);
-            });
+            if let Some(items_list) = items {
+                items_list.iter().enumerate().for_each(|(idx, item)| {
+                    let transform = c
+                        .transform
+                        .trans(center_x + (idx as f64 * item.width * 1.3), center_y * 1.1)
+                        .trans(selected as f64 * -item.width * 1.3, 0.0);
+                    item.render(transform, c, gl);
+                });
+            }
         });
     }
 
