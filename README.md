@@ -1,5 +1,5 @@
 # DSS Exercise #1
-I enjoyed this exercise quite a lot.  It was an opportunity to expose myself to OpenGL development in Rust and reacquaint myself with OpenGL development generally.  While I wasn't able to include all of the features I had planned, I'm (mostly) happy with the result.
+I enjoyed this exercise quite a lot.  It was an opportunity to expose myself to OpenGL development in Rust and reacquaint myself with OpenGL development generally.  While I wasn't able to include all of the features I had planned, I'm (mostly) happy with the result.  I did implement the "load the current date" feature, but there are no games going on right now, so it was disabled.  It instead always starts at 11-Jun-2018.
 
 ## Pre-built Binaries
 Binaries for [Linux](https://github.com/TheRealBluesun/disney_interview1/raw/master/bin/dss_interview1_linux.tar.gz) and [Windows](https://github.com/TheRealBluesun/disney_interview1/raw/master/bin/dss_interview1_windows.zip) can be found in the [bin](https://github.com/TheRealBluesun/disney_interview1/tree/master/bin) directory.
@@ -24,7 +24,7 @@ This is a big one.  This causes a black window on startup for some time, and a n
 
 
 ## Missing Features (ran out of time)
-1. No loading window during synchronous fetching
+1. Loading window during synchronous fetching
 2. Toggleable fullscreen (and fullscreen in all environments)
 3. Using the Enter key to display details of the selected game
 4. Displaying cached/preloading previous and next dates (decreased gamma image carousels above and below navigable center)
