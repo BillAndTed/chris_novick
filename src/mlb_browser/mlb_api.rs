@@ -1,11 +1,7 @@
-use chrono::*;
-use reqwest::*;
 use serde_derive::Deserialize;
 use serde_json::Value;
-use std::collections::HashMap;
-use std::fs::read_to_string;
 use std::fs::{create_dir, File};
-use std::io::{copy, Read, Seek, SeekFrom};
+use std::io::{copy, Read};
 use std::path::Path;
 
 #[allow(non_snake_case)]
@@ -135,7 +131,7 @@ pub struct Content {
 
 #[allow(non_snake_case)]
 #[derive(Deserialize, Debug, Clone)]
-pub struct leagueRecord {
+pub struct LeagueRecord {
     pub wins: u32,
     pub losses: u32,
     pub pct: String,
@@ -143,7 +139,7 @@ pub struct leagueRecord {
 
 #[allow(non_snake_case)]
 #[derive(Deserialize, Debug, Clone)]
-pub struct teamInfo {
+pub struct TeamInfo {
     pub id: u32,
     pub name: String,
     pub link: String,
@@ -152,9 +148,9 @@ pub struct teamInfo {
 #[allow(non_snake_case)]
 #[derive(Deserialize, Debug, Clone)]
 pub struct GameTeam {
-    pub leagueRecord: leagueRecord,
+    pub leagueRecord: LeagueRecord,
     pub score: u32,
-    pub team: teamInfo,
+    pub team: TeamInfo,
     pub isWinner: bool,
     pub splitSquad: bool,
     pub seriesNumber: u32,
@@ -214,7 +210,6 @@ impl Game {
         }
         let fname = cache_path.join(&id);
         if !fname.is_file() {
-            println!("File {:#?} does not exist", &fname);
             let mut response = reqwest::blocking::get(&url).unwrap();
             let mut dest = File::create(&fname).expect("Could not create file");
             copy(&mut response, &mut dest).unwrap();
@@ -237,7 +232,7 @@ impl MlbApi {
             let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
             match &parsed["dates"] {
                 serde_json::Value::Array(arr) => {
-                    if arr.len() > 0 {
+                    if !arr.is_empty() {
                         match serde_json::from_value(arr[0]["games"].to_owned()) {
                             Ok(v) => Some(v),
                             Err(e) => {

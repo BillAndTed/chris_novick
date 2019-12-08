@@ -1,12 +1,10 @@
 mod mlb_browser;
 use glutin_window::GlutinWindow as Window;
-use mlb_browser::mlb_api::MlbApi;
-use opengl_graphics::{GlGraphics, OpenGL, Texture, TextureSettings};
-use piston::event_loop::{EventSettings, Events};
-use piston::input::{Button, Key, PressEvent, RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
-use graphics::{clear, Image};
 use image::{DynamicImage, ImageFormat};
 use mlb_browser::*;
+use opengl_graphics::{GlGraphics, OpenGL, Texture, TextureSettings};
+use piston::event_loop::{EventSettings, Events};
+use piston::input::{Button, Key, PressEvent, RenderEvent, UpdateEvent};
 use piston::window::WindowSettings;
 
 const WIDTH: f64 = 800.0;
@@ -14,7 +12,7 @@ const HEIGHT: f64 = 600.0;
 
 fn main() {
     // Load OpenGL version
-    let opengl = OpenGL::V4_5;
+    let opengl = OpenGL::V3_3;
 
     // Create a Glutin window.
     let mut window: Window = WindowSettings::new("DSS Exercise #1", [WIDTH, HEIGHT])
@@ -38,7 +36,7 @@ fn main() {
         GlGraphics::new(opengl),
         texture,
         (img.width() as f64, img.height() as f64),
-        (2018, 6, 11)
+        (2018, 6, 11),
     );
 
     // Event loop for created window
@@ -58,11 +56,9 @@ fn main() {
         if let Some(button) = e.press_args() {
             match button {
                 Button::Keyboard(Key::Right) => {
-                    app.set_rate(2.0f64);
                     app.select_next();
                 }
                 Button::Keyboard(Key::Left) => {
-                    app.set_rate(-2.0f64);
                     app.select_prev();
                 }
                 Button::Keyboard(Key::Up) => {
@@ -71,7 +67,7 @@ fn main() {
                 Button::Keyboard(Key::Down) => {
                     app.decrement_day();
                 }
-                _ => app.set_rate(1.0f64),
+                _ => (),
             }
         }
     }
