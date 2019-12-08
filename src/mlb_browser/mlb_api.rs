@@ -221,7 +221,6 @@ impl Game {
         }
 
         let mut buffer = Vec::new();
-        // copy(&mut response, &mut buffer).unwrap();
         let mut readfile = File::open(&fname).expect("Could not open file");
         readfile.read_to_end(&mut buffer).unwrap();
         buffer.to_owned()
@@ -231,25 +230,29 @@ impl Game {
 pub struct MlbApi {}
 
 impl MlbApi {
-    pub fn get_items() -> Option<Vec<Game>> {
+    pub fn get_items(year: u16, month: u8, day: u8) -> Option<Vec<Game>> {
         // let json = read_to_string("src/assets/schedule.json").unwrap();
-        // let req_url = &format!("http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date={}&sportId=1", &Utc::now().format("%Y-%m-%d"));
-        let req_url = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1";
-        println!("{}", req_url);
-        let json: String = reqwest::blocking::get(req_url).unwrap().text().unwrap();
-
-        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
-        // let game :Game = serde_json::from_value(parsed["dates"][0]["games"][0].to_owned()).unwrap();
-        // println!("{:#?}", game);
-        match &parsed["dates"] {
-            serde_json::Value::Array(arr) => {
-                if arr.len() > 0 {
-                    Some(serde_json::from_value(arr[0]["games"].to_owned()).unwrap())
-                } else {
-                    None
+        let req_url = &format!("http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date={}-{:02}-{:02}&sportId=1", year, month, day );
+        if let Ok(json) = reqwest::blocking::get(req_url).unwrap().text() {
+            let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+            match &parsed["dates"] {
+                serde_json::Value::Array(arr) => {
+                    if arr.len() > 0 {
+                        match serde_json::from_value(arr[0]["games"].to_owned()) {
+                            Ok(v) => Some(v),
+                            Err(e) => {
+                                println!("Unable to parse json found at {} ({})", &req_url, e);
+                                None
+                            }
+                        }
+                    } else {
+                        None
+                    }
                 }
+                _ => None,
             }
-            _ => None,
+        } else {
+            None
         }
     }
 }

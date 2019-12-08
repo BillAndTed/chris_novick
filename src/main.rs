@@ -4,23 +4,16 @@ use mlb_browser::mlb_api::MlbApi;
 use opengl_graphics::{GlGraphics, OpenGL, Texture, TextureSettings};
 use piston::event_loop::{EventSettings, Events};
 use piston::input::{Button, Key, PressEvent, RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
-// use piston::input::*;
-use graphics::rectangle::square;
 use graphics::{clear, Image};
 use image::{DynamicImage, ImageFormat};
 use mlb_browser::*;
 use piston::window::WindowSettings;
-use std::collections::HashMap;
-use std::path::Path;
 
 const WIDTH: f64 = 800.0;
 const HEIGHT: f64 = 600.0;
 
 fn main() {
     // Load OpenGL version
-
-    // Load JSON data, for now synchronously
-    let games = MlbApi::get_items();
     let opengl = OpenGL::V4_5;
 
     // Create a Glutin window.
@@ -41,11 +34,11 @@ fn main() {
     let texture = Texture::from_image(&img, &TextureSettings::new());
 
     // Create our mlb_browser
-    let mut app = App::new(
+    let mut app = MlbApp::new(
         GlGraphics::new(opengl),
         texture,
         (img.width() as f64, img.height() as f64),
-        games,
+        (2018, 6, 11)
     );
 
     // Event loop for created window
@@ -71,6 +64,12 @@ fn main() {
                 Button::Keyboard(Key::Left) => {
                     app.set_rate(-2.0f64);
                     app.select_prev();
+                }
+                Button::Keyboard(Key::Up) => {
+                    app.increment_day();
+                }
+                Button::Keyboard(Key::Down) => {
+                    app.decrement_day();
                 }
                 _ => app.set_rate(1.0f64),
             }
