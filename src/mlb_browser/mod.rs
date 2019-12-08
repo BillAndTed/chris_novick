@@ -27,6 +27,7 @@ const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
 #[allow(unused)]
 const BLUE: [f32; 4] = [0.0, 0.0, 1.0, 1.0];
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+const OFFWHITE: [f32; 4] = [1.0, 1.0, 1.0, 0.15];
 
 impl MenuItem {
     pub fn new(game: Game, width: f64, height: f64, img_tex: Texture) -> Self {
@@ -271,6 +272,7 @@ impl MlbApp {
 
         let date_str = &format!("{}-{}-{}", self.date.0, self.date.1, self.date.2);
         let glyph_cache = &mut self.glyph_cache;
+        let instruction_str = "Use ← → to navigate, ↑ ↓ to change dates, ESC to exit";
 
         self.gl.draw(args.viewport(), |c, gl| {
             // Stretch our background image to the window and draw it
@@ -279,9 +281,11 @@ impl MlbApp {
                 .scale(args.window_size[0] / bg_w, args.window_size[1] / bg_h);
             graphics::image(bg_texture, bg_trans, gl);
 
-            let title_transform = c.transform.trans(100.0, 100.0);
+            let title_transform = c.transform.trans(50.0, 50.0);
             text(WHITE, 25, &date_str, glyph_cache, title_transform, gl).unwrap();
-
+            let instruction_transform = c.transform.trans(5.0, args.window_size[1] - 5.0);
+            text(OFFWHITE, 20, &instruction_str, glyph_cache, instruction_transform, gl).unwrap();
+            
             // For each item in our items list, render it
             if let Some(items_list) = items {
                 items_list.iter().enumerate().for_each(|(idx, item)| {
