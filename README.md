@@ -26,3 +26,6 @@ This is a big one.  This causes a black window on startup for some time, and a n
 3. Using the Enter key to display details of the selected game
 4. Displaying cached/preloading previous and next dates (decreased gamma image carousels above and below navigable center)
 5. Querying for next available game when the selected day has none (I'm sure there's a way to do this)
+
+## Screenshot
+![Alt text](images/screenshot.png?raw=true "Screenshot")
