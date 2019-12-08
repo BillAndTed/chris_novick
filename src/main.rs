@@ -32,7 +32,7 @@ fn main() {
         .unwrap();
 
     // Load the background image (binary resource)
-    let img_bytes = include_bytes!("../1.jpg");
+    let img_bytes = include_bytes!("assets/1.jpg");
     let img = match image::load_from_memory_with_format(img_bytes, ImageFormat::JPEG).unwrap() {
         DynamicImage::ImageRgba8(data) => data,
         x => x.to_rgba(),

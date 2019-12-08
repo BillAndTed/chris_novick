@@ -26,7 +26,7 @@ impl MenuItem {
     pub fn render(&self, transform: Matrix2d, c: graphics::context::Context, gl: &mut GlGraphics) {
         use graphics::{rectangle, text, Rectangle, Transformed};
         let texture_settings = TextureSettings::new();
-        let font = include_bytes!("../../FiraSans-Regular.ttf");
+        let font = include_bytes!("../assets/FiraSans-Regular.ttf");
         let g_text = format!(
             "{} vs {}",
             &self.game.teams.home.team.name, &self.game.teams.away.team.name
@@ -47,7 +47,7 @@ impl MenuItem {
             let scaled_width = scale * self.width;
             let scaled_height = scale * self.height;
             let box_transform = transform.scale(scale, scale).trans(-center_x, -center_y);
-            let vs_trans = transform.trans(-center_x * scale, -center_y * scale);
+            let vs_trans = transform.trans(-center_x * scale, -center_y * scale - 15.0);
             let title_trans = transform.trans(-center_x * scale, center_y * scale + 15.0);
             let img_trans = transform
                 .scale(
@@ -58,7 +58,7 @@ impl MenuItem {
                     -0.5 * self.img.width() as f64,
                     -0.5 * self.img.height() as f64,
                 );
-            text(WHITE, 15, &g_text, &mut glyph_cache, vs_trans, gl).unwrap();
+            text(WHITE, 20, &g_text, &mut glyph_cache, vs_trans, gl).unwrap();
             text(WHITE, 15, &recap_text, &mut glyph_cache, title_trans, gl).unwrap();
             rectangle(BLUE, square, box_transform, gl);
             graphics::image(&self.img_tex, img_trans, gl);
@@ -109,8 +109,9 @@ impl App {
                     width: 200.0,
                     height: 200.0 * 9.0 / 16.0,
                     img: {
-                        let img_bytes = include_bytes!("../../cut.jpg");
-                        match image::load_from_memory_with_format(img_bytes, ImageFormat::JPEG)
+                        let (_,url) = g.get_recap();
+                        let img_bytes = Game::get_img(url.clone(), g.gamePk.to_string());
+                        match image::load_from_memory_with_format(&img_bytes, ImageFormat::JPEG)
                             .unwrap()
                         {
                             DynamicImage::ImageRgba8(data) => data,
@@ -118,9 +119,10 @@ impl App {
                         }
                     },
                     img_tex: {
-                        let img_bytes = include_bytes!("../../cut.jpg");
+                        let (_,url) = g.get_recap();
+                        let img_bytes = Game::get_img(url.clone(), g.gamePk.to_string());
                         let img =
-                            match image::load_from_memory_with_format(img_bytes, ImageFormat::JPEG)
+                            match image::load_from_memory_with_format(&img_bytes, ImageFormat::JPEG)
                                 .unwrap()
                             {
                                 DynamicImage::ImageRgba8(data) => data,
@@ -206,8 +208,8 @@ impl App {
             items.iter().enumerate().for_each(|(idx, item)| {
                 let transform = c
                     .transform
-                    .trans(center_x + (idx as f64 * item.width * 1.5), center_y)
-                    .trans(selected as f64 * -item.width * 1.5, 0.0);
+                    .trans(center_x + (idx as f64 * item.width * 1.3), center_y * 1.1)
+                    .trans(selected as f64 * -item.width * 1.3, 0.0);
                 item.render(transform, c, gl);
             });
         });

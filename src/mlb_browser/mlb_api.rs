@@ -3,7 +3,9 @@ use reqwest::*;
 use serde_derive::Deserialize;
 use serde_json::Value;
 use std::collections::HashMap;
-use std::fs::read_to_string;
+use std::fs::{read_to_string};
+use std::fs::{File};
+use std::io::{copy, Read, Seek, SeekFrom};
 
 #[allow(non_snake_case)]
 #[derive(Deserialize, Debug, Clone)]
@@ -202,6 +204,21 @@ impl Game {
             &self.content.editorial.recap.mlb.photo.cuts._640x360.src,
         )
     }
+
+    pub fn get_img(url: String, id: String) -> Vec<u8> {
+        // include_bytes!("../assets/cut.jpg")
+
+        let mut response = reqwest::blocking::get(&url).unwrap();
+
+        let mut dest = File::create(&id).unwrap();
+        copy(&mut response, &mut dest).unwrap();
+        let mut buffer = Vec::with_capacity(response.content_length().unwrap() as usize);
+        // copy(&mut response, &mut buffer).unwrap();
+        let mut readfile = File::open(&id).unwrap();
+        readfile.read_to_end(&mut buffer).unwrap();
+        buffer.to_owned()
+        
+    }
 }
 
 pub struct MlbApi {}
@@ -214,8 +231,8 @@ impl MlbApi {
         // .unwrap();
         // println!("{:#?}", resp.keys());
 
-        let json = read_to_string("./schedule.json").unwrap();
-        // let json: String = reqwest::blocking::get("http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1").unwrap().text().unwrap();
+        // let json = read_to_string("src/assets/schedule.json").unwrap();
+        let json: String = reqwest::blocking::get("http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1").unwrap().text().unwrap();
 
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
         // let game :Game = serde_json::from_value(parsed["dates"][0]["games"][0].to_owned()).unwrap();
