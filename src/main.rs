@@ -1,5 +1,5 @@
 mod mlb_browser;
-use glutin_window::GlutinWindow as Window;
+use glutin_window::{GlutinWindow as Window};
 use image::{DynamicImage, ImageFormat};
 use mlb_browser::*;
 use opengl_graphics::{GlGraphics, OpenGL, Texture, TextureSettings};
@@ -7,8 +7,8 @@ use piston::event_loop::{EventSettings, Events};
 use piston::input::{Button, Key, PressEvent, RenderEvent, UpdateEvent};
 use piston::window::WindowSettings;
 
-const WIDTH: f64 = 800.0;
-const HEIGHT: f64 = 600.0;
+const WIDTH: f64 = 1366.0;
+const HEIGHT: f64 = 768.0;
 
 fn main() {
     // Load OpenGL version
@@ -18,7 +18,7 @@ fn main() {
     let mut window: Window = WindowSettings::new("DSS Exercise #1", [WIDTH, HEIGHT])
         .graphics_api(opengl)
         .exit_on_esc(true)
-        .fullscreen(true)
+        // .fullscreen(true)
         .build()
         .unwrap();
 
