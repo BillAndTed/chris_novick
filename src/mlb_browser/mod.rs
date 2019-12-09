@@ -12,9 +12,6 @@ struct MenuItem {
     game: Game,
     width: f64,
     height: f64,
-    // img: image::RgbaImage,
-    // img_height: f64,
-    // img_width: f64,
     img_tex: Texture,
 }
 
@@ -80,11 +77,9 @@ impl MenuItem {
         let img_width = img_width as f64;
         let img_height = img_height as f64;
         // Center this block respectively
-        // let square = rectangle::rectangle_by_corners(0.0, 0.0, self.width, self.height);
         if is_selected {
             let scaled_width = scale * self.width;
             let scaled_height = scale * self.height;
-            // let box_transform = transform.scale(scale, scale).trans(-center_x, -center_y);
             let vs_trans = transform.trans(
                 -vs_text_width / 2.0,
                 -center_y * scale - vs_text_font_size as f64 / 2.0,
@@ -114,11 +109,9 @@ impl MenuItem {
                 gl,
             )
             .unwrap();
-            // rectangle(BLUE, square, box_transform, gl);
             graphics::image(&self.img_tex, img_trans, gl);
         } else {
             let transform = transform.trans(-center_x, -center_y);
-            // rectangle(RED, square, transform, gl);
             let img_trans = transform.scale(self.width / img_width, self.height / img_height);
             graphics::image(&self.img_tex, img_trans, gl);
         }

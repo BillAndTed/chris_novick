@@ -4,6 +4,7 @@ use std::fs::{create_dir, File};
 use std::io::{copy, Read};
 use std::path::Path;
 
+// The following structs are all for deserialization of JSON
 #[allow(non_snake_case)]
 #[derive(Deserialize, Debug, Clone)]
 pub struct ContentRecapPhotoCutItem {

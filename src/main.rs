@@ -18,6 +18,7 @@ fn main() {
     let mut window: Window = WindowSettings::new("DSS Exercise #1", [WIDTH, HEIGHT])
         .graphics_api(opengl)
         .exit_on_esc(true)
+        // Disable fullscreen for now -- appears to be broken on some versions of Windows
         // .fullscreen(true)
         .build()
         .unwrap();
